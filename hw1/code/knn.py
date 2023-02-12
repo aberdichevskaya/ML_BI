@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
 class KNNClassifier:
@@ -54,11 +55,12 @@ class KNNClassifier:
         distances, np array (num_test_samples, num_train_samples) - array
            with distances between each test and each train sample
         """
+        dist = np.ndarray((len(X), len(self.train_X)))
+        for i in range(len(X)):
+            for j in range(len(self.train_X)):
+                dist[i][j] = np.sum(np.abs(X[i] - self.train_X[j]))
+        return dist
         
-        """
-        YOUR CODE IS HERE
-        """
-        pass
 
 
     def compute_distances_one_loop(self, X):
@@ -77,7 +79,11 @@ class KNNClassifier:
         """
         YOUR CODE IS HERE
         """
-        pass
+        dist = np.ndarray((len(X), len(self.train_X)))
+        for i in range(len(X)):
+            dist[i] = np.sum(np.abs(X[i] - self.train_X), axis=1)
+        return dist
+        
 
 
     def compute_distances_no_loops(self, X):
@@ -93,10 +99,7 @@ class KNNClassifier:
            with distances between each test and each train sample
         """
 
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+        return cdist(X, self.train_X, metric='cityblock')
 
 
     def predict_labels_binary(self, distances):
@@ -115,10 +118,10 @@ class KNNClassifier:
         n_test = distances.shape[0]
         prediction = np.zeros(n_test)
 
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+        for i in range(n_test):
+            min_dist = np.min(distances[i])
+            prediction[i] = self.train_y[np.where(np.isclose(distances[i], min_dist))]
+        return prediction
 
 
     def predict_labels_multiclass(self, distances):
@@ -137,7 +140,11 @@ class KNNClassifier:
         n_test = distances.shape[0]
         prediction = np.zeros(n_test, np.int)
 
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+        n_train = distances.shape[1]
+        n_test = distances.shape[0]
+        prediction = np.zeros(n_test)
+
+        for i in range(n_test):
+            min_dist = np.min(distances[i])
+            prediction[i] = self.train_y[np.where(np.isclose(distances[i], min_dist))]
+        return prediction
