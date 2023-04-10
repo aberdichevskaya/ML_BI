@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
 class KNNClassifier:
@@ -54,11 +55,12 @@ class KNNClassifier:
         distances, np array (num_test_samples, num_train_samples) - array
            with distances between each test and each train sample
         """
+        dist = np.ndarray((len(X), len(self.train_X)))
+        for i in range(len(X)):
+            for j in range(len(self.train_X)):
+                dist[i][j] = np.sum(np.abs(X[i] - self.train_X[j]))
+        return dist
         
-        """
-        YOUR CODE IS HERE
-        """
-        pass
 
 
     def compute_distances_one_loop(self, X):
@@ -77,7 +79,11 @@ class KNNClassifier:
         """
         YOUR CODE IS HERE
         """
-        pass
+        dist = np.ndarray((len(X), len(self.train_X)))
+        for i in range(len(X)):
+            dist[i] = np.sum(np.abs(X[i] - self.train_X), axis=1)
+        return dist
+        
 
 
     def compute_distances_no_loops(self, X):
@@ -93,11 +99,17 @@ class KNNClassifier:
            with distances between each test and each train sample
         """
 
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+        return cdist(X, self.train_X, metric='cityblock')
 
+    
+    def k_nearest(self, distances_i):
+        dist_sorted = sorted(distances_i)
+        min_dists = dist_sorted[:self.k]
+        idxs = []
+        for j in range(len(distances_i)):
+            if distances_i[j] in min_dists:
+                idxs.append(j)
+        return idxs
 
     def predict_labels_binary(self, distances):
         """
@@ -114,11 +126,13 @@ class KNNClassifier:
         n_train = distances.shape[1]
         n_test = distances.shape[0]
         prediction = np.zeros(n_test)
-
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+        for i in range(n_test):
+            k_nearest = self.k_nearest(distances[i]) 
+            vote_for_class = [0]*len(np.unique(self.train_y))
+            for j in k_nearest:
+                vote_for_class[self.train_y[j]] += 1
+            prediction[i] = vote_for_class.index(max(vote_for_class))
+        return prediction
 
 
     def predict_labels_multiclass(self, distances):
@@ -132,12 +146,5 @@ class KNNClassifier:
         pred, np array of int (num_test_samples) - predicted class index 
            for every test sample
         """
-
-        n_train = distances.shape[0]
-        n_test = distances.shape[0]
-        prediction = np.zeros(n_test, np.int)
-
-        """
-        YOUR CODE IS HERE
-        """
-        pass
+  
+        return self.predict_labels_binary(distances)
